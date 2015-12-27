@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import MJRefresh
 
-class TopicsTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class TopicsTableViewController: UIViewController, UITableViewDelegate {
 
     // MARK: Properties
     @IBOutlet weak var topicsTableView: UITableView!
@@ -25,7 +26,18 @@ class TopicsTableViewController: UIViewController, UITableViewDataSource, UITabl
         
         self.topicsTableView.estimatedRowHeight = 72
         self.topicsTableView.rowHeight = UITableViewAutomaticDimension
-        
+
+        var tableViewHeader = MJRefreshNormalHeader(refreshingTarget: self, refreshingAction: "pullDownRefreshingAction")
+        tableViewHeader.lastUpdatedTimeLabel!.hidden = true
+
+        self.topicsTableView.mj_header = tableViewHeader
+
+        var tableViewFooter = MJRefreshAutoNormalFooter(refreshingTarget: self, refreshingAction: "pullUpRefreshingAction")
+
+        self.topicsTableView.mj_footer = tableViewFooter
+
+        self.topicsTableView.mj_header.beginRefreshing()
+
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -52,27 +64,14 @@ class TopicsTableViewController: UIViewController, UITableViewDataSource, UITabl
 
     // MARK: - Table view data source
 
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 1
+    func pullDownRefreshingAction() {
+        print("do pull down refresh")
+        self.topicsTableView.mj_header.endRefreshing()
     }
 
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.topics.count
-    }
-
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(self.cellIdentifier, forIndexPath: indexPath) as! TopicsTableViewCell
-        let topic = self.topics[indexPath.row]
-
-        // Configure the cell...
-        cell.titleLabel.text = topic.title
-        cell.authorNameLabel.text = topic.user.login
-        cell.nodeNameLabel.text = topic.nodeName
-        cell.repliesCountLabel.text = String(topic.repliesCount)
-        
-        //cell.separatorInset = UIEdgeInsetsMake(0, cell.bounds.size.width, 0, 0);
-        
-        return cell
+    func pullUpRefreshingAction() {
+        print("do pull up refresh")
+        self.topicsTableView.mj_footer.endRefreshing()
     }
 
     /*
@@ -119,4 +118,29 @@ class TopicsTableViewController: UIViewController, UITableViewDataSource, UITabl
         // Pass the selected object to the new view controller.
     }
     */
+}
+
+extension TopicsTableViewController: UITableViewDataSource {
+    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return 1
+    }
+
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.topics.count
+    }
+
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCellWithIdentifier(self.cellIdentifier, forIndexPath: indexPath) as! TopicsTableViewCell
+        let topic = self.topics[indexPath.row]
+
+        // Configure the cell...
+        cell.titleLabel.text = topic.title
+        cell.authorNameLabel.text = topic.user.login
+        cell.nodeNameLabel.text = topic.nodeName
+        cell.repliesCountLabel.text = String(topic.repliesCount)
+
+        //cell.separatorInset = UIEdgeInsetsMake(0, cell.bounds.size.width, 0, 0);
+
+        return cell
+    }
 }
